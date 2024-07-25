@@ -2,16 +2,15 @@ package com.appdevforall.tooltippreviewer
 
 import android.content.Context
 import android.content.Context.LAYOUT_INFLATER_SERVICE
-import android.text.Html
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
 import android.widget.PopupWindow
 import android.widget.TextView
-import androidx.core.content.ContextCompat.getSystemService
-import androidx.core.text.HtmlCompat
 
 class CustomAdapter(context: Context, private val items: List<Pair<Pair<String, String>, String>>,
                     var lateinit: Any
@@ -45,13 +44,16 @@ class CustomAdapter(context: Context, private val items: List<Pair<Pair<String, 
         // Create the PopupWindow
         val popupWindow = PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
 
-        val tvText = popupView.findViewById<TextView>(R.id.popup_text)
-        tvText.text = Html.fromHtml(tooltip, Html.FROM_HTML_MODE_COMPACT)
+        // Initialize the WebView
+        val webView = popupView.findViewById<WebView>(R.id.webview)
+        webView.webViewClient = WebViewClient() // Ensure links open within the WebView
+        webView.settings.javaScriptEnabled = true // Enable JavaScript if needed
+        webView.loadData(tooltip, "text/html", "UTF-8")
 
         // Set background drawable (optional)
         popupWindow.setBackgroundDrawable(null)
 
         // Show the PopupWindow
-        popupWindow.showAtLocation(anchorView, Gravity.NO_GRAVITY, anchorView.x.toInt(), anchorView.y.toInt())
+        popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0 /*chorView.x.toInt(), anchorView.y.toInt()*/)
     }
 }

@@ -12,11 +12,13 @@ import androidx.appcompat.app.AppCompatActivity
 import com.opencsv.CSVReader
 import java.nio.charset.Charset
 
+
 class MainActivity : AppCompatActivity() {
 
     private lateinit var openDocumentLauncher: ActivityResultLauncher<Intent>
     private lateinit var listView: ListView
-    private var items : ArrayList<Pair<Pair<String, String>, String>> = ArrayList<Pair<Pair<String, String>, String>>()
+    private var items: ArrayList<Pair<Pair<String, String>, String>> =
+        ArrayList<Pair<Pair<String, String>, String>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,7 +67,8 @@ class MainActivity : AppCompatActivity() {
                             CustomAdapter(
                                 this,
                                 items,
-                                R.layout.listview_item)
+                                R.layout.listview_item
+                            )
                         listView.adapter = adapter
 
                         // Set up a tooltip for the third row
@@ -91,7 +94,7 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
     }
-}
 
+}
 
 

@@ -66,8 +66,7 @@ class MainActivity : AppCompatActivity() {
                         val adapter =
                             CustomAdapter(
                                 this,
-                                items,
-                                R.layout.listview_item
+                                items
                             )
                         listView.adapter = adapter
 

@@ -5,22 +5,44 @@ import android.content.Context.LAYOUT_INFLATER_SERVICE
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.PopupWindow
 import android.widget.TextView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class CustomAdapter(context: Context, private val items: List<Pair<Pair<String, String>, String>>,
-                    var lateinit: Any
-) :
+class CustomAdapter(context: Context,
+                    private val items: List<Pair<Pair<String, String>, String>>) :
     ArrayAdapter<Pair<Pair<String, String>, String>>(context, 0, items) {
+
+    private val filteredItems =
+        items.filter{
+            !(it.first.second.endsWith("_expanded", ignoreCase = true)
+                    || it.first.second.endsWith("_links", ignoreCase = true))
+        }
+
+
+    override fun getItem(position: Int): Pair<Pair<String, String>, String>? {
+        return filteredItems?.get(position)
+    }
+
+    override fun getItemId(position: Int): Long {
+        return position.toLong()
+    }
+
+    override fun getCount() : Int {
+        return filteredItems.size
+    }
+
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
         val itemView = convertView ?: LayoutInflater.from(context).inflate(R.layout.listview_item, parent, false)
-        val screen = items[position].first.first
-        val tag = items[position].first.second
-        val tooltip = items[position].second
+        val screen = filteredItems[position].first.first
+        val tag = filteredItems[position].first.second
+        val tooltip = filteredItems[position].second
         val tvScreen: TextView = itemView.findViewById(R.id.tvScreen)
         tvScreen.text = screen
         val tvTag: TextView = itemView.findViewById(R.id.tvTag)
@@ -39,11 +61,21 @@ class CustomAdapter(context: Context, private val items: List<Pair<Pair<String, 
         // Inflate the PopupWindow layout
         val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val popupView = inflater.inflate(R.layout.popup_window, null)
-        val tooltip = items[position].second
+        val prefix = filteredItems.get(position).first.second
+        val tooltip : String =  if(prefix.endsWith("_expanded", ignoreCase = true)) {
+            ""
+        } else if(prefix.endsWith("_links", ignoreCase = true)) {
+            ""
+        } else {
+            filteredItems[position].second
+        }
 
+        popupView.findViewById<FloatingActionButton>(R.id.fab)?.setOnClickListener() { showMore(position) }
         // Create the PopupWindow
         val popupWindow = PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
-
+        if(popupWindow.isShowing) {
+            popupWindow.dismiss()
+        }
         // Initialize the WebView
         val webView = popupView.findViewById<WebView>(R.id.webview)
         webView.webViewClient = WebViewClient() // Ensure links open within the WebView
@@ -55,5 +87,10 @@ class CustomAdapter(context: Context, private val items: List<Pair<Pair<String, 
 
         // Show the PopupWindow
         popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0 /*chorView.x.toInt(), anchorView.y.toInt()*/)
+    }
+
+    fun showMore(position:Int) {
+        val tooltip = items.get(position*3+1).second
+
     }
 }

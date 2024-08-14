@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">TooltipPreviewer</string>
+    <string name="fab_more">More</string>
 </resources>

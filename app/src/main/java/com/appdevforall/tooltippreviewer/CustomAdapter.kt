@@ -24,6 +24,10 @@ class CustomAdapter(context: Context,
             !(it.first.second.endsWith("_expanded", ignoreCase = true)
                     || it.first.second.endsWith("_links", ignoreCase = true))
         }
+    private val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    private val popupView = inflater.inflate(R.layout.popup_window, null)
+    private val popupWindow = PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT, true)
 
 
     override fun getItem(position: Int): Pair<Pair<String, String>, String>? {
@@ -42,7 +46,6 @@ class CustomAdapter(context: Context,
         val itemView = convertView ?: LayoutInflater.from(context).inflate(R.layout.listview_item, parent, false)
         val screen = filteredItems[position].first.first
         val tag = filteredItems[position].first.second
-        val tooltip = filteredItems[position].second
         val tvScreen: TextView = itemView.findViewById(R.id.tvScreen)
         tvScreen.text = screen
         val tvTag: TextView = itemView.findViewById(R.id.tvTag)
@@ -50,29 +53,28 @@ class CustomAdapter(context: Context,
 
         // Set a tooltip
         itemView.setOnLongClickListener {
-            showPopupWindow(itemView, position)
+            showPopupWindow(itemView, position, 0)
             true
         }
 
         return itemView
     }
 
-    private fun showPopupWindow(anchorView: View, position : Int) {
+    private fun showPopupWindow(anchorView: View, position : Int, level : Int) {
         // Inflate the PopupWindow layout
-        val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val popupView = inflater.inflate(R.layout.popup_window, null)
-        val prefix = filteredItems.get(position).first.second
-        val tooltip : String =  if(prefix.endsWith("_expanded", ignoreCase = true)) {
-            ""
-        } else if(prefix.endsWith("_links", ignoreCase = true)) {
-            ""
-        } else {
-            filteredItems[position].second
+        val fab = popupView.findViewById<FloatingActionButton>(R.id.fab)
+        val tooltip = when(level) {
+            0 -> filteredItems[position].second
+            1 -> items[position+level].second
+            else -> ""
         }
 
-        popupView.findViewById<FloatingActionButton>(R.id.fab)?.setOnClickListener() { showMore(position) }
+        fab.setOnClickListener {
+            showPopupWindow(anchorView, position, level+1)
+        }
+
+        /////popupView.findViewById<FloatingActionButton>(R.id.fab)?.setOnClickListener() { showMore(position) }
         // Create the PopupWindow
-        val popupWindow = PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
         if(popupWindow.isShowing) {
             popupWindow.dismiss()
         }

@@ -9,6 +9,9 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentTransaction
+import com.appdevforall.tooltippreviewer.fragment.ListViewFragment
+import com.appdevforall.tooltippreviewer.fragment.WebviewFragment
 import com.opencsv.CSVReader
 import java.nio.charset.Charset
 
@@ -16,14 +19,13 @@ import java.nio.charset.Charset
 class MainActivity : AppCompatActivity() {
 
     private lateinit var openDocumentLauncher: ActivityResultLauncher<Intent>
-    private lateinit var listView: ListView
+
     private var items: ArrayList<Pair<Pair<String, String>, String>> =
         ArrayList<Pair<Pair<String, String>, String>>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        listView = findViewById(R.id.listView)
         // Initialize the launcher for the open document intent
         openDocumentLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -31,6 +33,14 @@ class MainActivity : AppCompatActivity() {
                     result.data?.data?.let { uri ->
                         // Read the file content
                         readFileContent(uri)
+                        val bundle = Bundle()
+                        bundle.putSerializable("items", items)
+                        val targetFragment = ListViewFragment()
+                        targetFragment.arguments = bundle
+                        val transaction: FragmentTransaction = supportFragmentManager.beginTransaction()
+                        transaction.replace(R.id.fragment_container, targetFragment)
+                        transaction.commit()
+
                     }
                 }
             }
@@ -62,23 +72,6 @@ class MainActivity : AppCompatActivity() {
                         val tooltip = row[2]
                         items.add(Pair<Pair<String, String>, String>(firstTwo, tooltip))
 
-                        // Set up the ListView with the first two rows
-                        val adapter =
-                            CustomAdapter(
-                                this,
-                                items
-                            )
-                        listView.adapter = adapter
-
-                        // Set up a tooltip for the third row
-                        listView.setOnItemLongClickListener { _, _, position, _ ->
-                            if (position == 1) {
-                                Toast.makeText(this, tooltip, Toast.LENGTH_LONG).show()
-                                true
-                            } else {
-                                false
-                            }
-                        }
                     } else {
                         Toast.makeText(
                             this,
@@ -93,7 +86,6 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
     }
-
 }
 
 

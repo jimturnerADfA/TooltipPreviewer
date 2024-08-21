@@ -2,6 +2,7 @@ package com.appdevforall.tooltippreviewer
 
 import android.content.Context
 import android.content.Context.LAYOUT_INFLATER_SERVICE
+import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -13,11 +14,12 @@ import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.fragment.app.FragmentTransaction
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class CustomAdapter(context: Context,
                     private val items: List<Pair<Pair<String, String>, String>>) :
-    ArrayAdapter<Pair<Pair<String, String>, String>>(context, 0, items) {
+    ArrayAdapter<Pair<Pair<String, String>, String>>(context, R.layout.listview_item, items) {
 
     private val filteredItems =
         items.filter{
@@ -63,36 +65,58 @@ class CustomAdapter(context: Context,
     private fun showPopupWindow(anchorView: View, position : Int, level : Int) {
         // Inflate the PopupWindow layout
         val fab = popupView.findViewById<FloatingActionButton>(R.id.fab)
-        val tooltip = when(level) {
+        val tooltip = when (level) {
             0 -> filteredItems[position].second
-            1 -> items[position+level].second
-            else -> ""
+            1, 2 -> filteredItems[position].second + "<br><br>" + items[position + level].second
+            else -> {
+                fab.hide()
+                ""
+            }
         }
 
-        fab.setOnClickListener {
-            showPopupWindow(anchorView, position, level+1)
-        }
-
-        /////popupView.findViewById<FloatingActionButton>(R.id.fab)?.setOnClickListener() { showMore(position) }
-        // Create the PopupWindow
-        if(popupWindow.isShowing) {
+        //Dismiss the old PopupWindow
+        if (popupWindow.isShowing) {
             popupWindow.dismiss()
         }
-        // Initialize the WebView
-        val webView = popupView.findViewById<WebView>(R.id.webview)
-        webView.webViewClient = WebViewClient() // Ensure links open within the WebView
-        webView.settings.javaScriptEnabled = true // Enable JavaScript if needed
-        webView.loadData(tooltip, "text/html", "UTF-8")
 
-        // Set background drawable (optional)
-        popupWindow.setBackgroundDrawable(null)
+        when (level) {
+            0, 1 -> {
+                fab.setOnClickListener {
+                    showPopupWindow(anchorView, position, level + 1)
+                }
 
-        // Show the PopupWindow
-        popupWindow.showAtLocation(anchorView, Gravity.CENTER, 0, 0 /*chorView.x.toInt(), anchorView.y.toInt()*/)
-    }
+                // Initialize the WebView
+                val webView = popupView.findViewById<WebView>(R.id.webview)
+                webView.webViewClient = WebViewClient() // Ensure links open within the WebView
+                webView.settings.javaScriptEnabled = true // Enable JavaScript if needed
+                webView.loadData(tooltip, "text/html", "UTF-8")
 
-    fun showMore(position:Int) {
-        val tooltip = items.get(position*3+1).second
+                // Set the background to match the theme
+                popupWindow.setBackgroundDrawable(ColorDrawable(context.getColor(android.R.color.transparent)))
 
+                // Optional: Set up a border or padding if needed (you'll need to define this in your popup layout XML)
+                // Set a theme-aware background, depending on your design
+                popupView.setBackgroundResource(R.drawable.popup_background) // Make sure to create this drawable
+
+                // Show the popup window
+                popupWindow.isFocusable = true
+                popupWindow.showAsDropDown(anchorView)
+
+                // Optional: For dismissing the popup when clicking outside
+                popupWindow.setOutsideTouchable(true)
+
+                // Show the PopupWindow
+                popupWindow.showAtLocation(
+                    anchorView,
+                    Gravity.CENTER,
+                    0,
+                    0 /*anchorView.x.toInt(), anchorView.y.toInt()*/
+                )
+            }
+
+            2 -> {
+                // Add WebViewFragment to the activity
+            }
+        }
     }
 }

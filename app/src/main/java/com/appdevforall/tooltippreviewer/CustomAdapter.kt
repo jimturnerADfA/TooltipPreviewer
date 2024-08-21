@@ -6,26 +6,28 @@ import android.graphics.drawable.ColorDrawable
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.view.View.OnClickListener
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.ArrayAdapter
-import android.widget.Button
 import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentTransaction
+import com.appdevforall.tooltippreviewer.fragment.WebviewFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class CustomAdapter(context: Context,
+class CustomAdapter(callerContext: Context,
                     private val items: List<Pair<Pair<String, String>, String>>) :
-    ArrayAdapter<Pair<Pair<String, String>, String>>(context, R.layout.listview_item, items) {
+    ArrayAdapter<Pair<Pair<String, String>, String>>(callerContext, R.layout.listview_item, items) {
 
     private val filteredItems =
         items.filter{
             !(it.first.second.endsWith("_expanded", ignoreCase = true)
                     || it.first.second.endsWith("_links", ignoreCase = true))
         }
+    private val context = callerContext
+    private val activity : AppCompatActivity = callerContext as AppCompatActivity
     private val inflater = context.getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
     private val popupView = inflater.inflate(R.layout.popup_window, null)
     private val popupWindow = PopupWindow(popupView, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -115,7 +117,9 @@ class CustomAdapter(context: Context,
             }
 
             2 -> {
-                // Add WebViewFragment to the activity
+                val transaction : FragmentTransaction = activity.supportFragmentManager.beginTransaction().addToBackStack("WebView")
+                transaction.replace(R.id.fragment_container, WebviewFragment())
+                transaction.commit()
             }
         }
     }
